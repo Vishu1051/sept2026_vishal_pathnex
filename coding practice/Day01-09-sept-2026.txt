@@ -1,0 +1,5 @@
+In this  coding section we just wrote the commands on daily bascis on -
+  ansible 
+ - docker
+- terraform files
+ - yaml files 
