@@ -1,0 +1,116 @@
+# day 14 - kubernetes  advance concepts && multi-enviroment deployment
+  
+ ## ansible - setup nginx with reverse proxy
+ 
+  
+   ```yaml
+    -name: Setup Nginx with Reverse Proxy 
+     hosts: all
+     become: yes
+     tasks:
+       - name: Install nginx 
+         yum:
+           name: nginx 
+           state: present
+        - name:  Configure nginx as reverse proxy 
+          template:
+              src: reverse- proxy.conf,j2
+              dest: /etc/nginx/conf.d/reverse-proxy/.conf
+         - name: Restarted nginx service
+           service:
+              name: nginx
+              state: restarted
+              enabled: yes
+       
+
+##  * terraform - create s3 bucket with  versioning and logging 
+  resource  "aws_s3_bucket"  "pathnex_bucket" {
+    bucket = "pathnex-bucket"
+    versioning {
+       enabled = true
+     }
+     
+    
+     logging {
+        target_bucket = "pathnex-log-bucket"
+         target_prefix = "logs/"
+      }
+    }
+     
+
+   * kubernetes - ingress with nginx  controller
+    apiVersion:  networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: pathnex-ingress
+      annotation:
+           nginx.ingress.kubernetes.io/rewrite-targets: /
+    spec:
+      rules: 
+       - host: pathnex.local
+         http:
+           paths: 
+            - path: /
+              pathtype: Prefix
+              backend:
+                service:
+                  name: pathnex-service
+                  port:
+                    number: 80
+      ## jenkinsfile - build ,test , and deploy with stages
+     pipeline {
+        agent any 
+        stages {
+            stage('Build') {
+               steps {
+                   echo 'Building Docker image...'
+                   docker.bild('pathnex-web-app')
+               }
+             }
+             stage{'Test') {
+                  steps {
+                       echo 'Running tests...') {
+                       }
+               }
+              stage('Deploy to  kubernetes') {
+                  steps {
+                     script {
+                         sh 'kubectl apply -f kubernets/deployment.yaml'
+                        }
+                       }
+                 }
+              }
+          }     
+
+##  *  gitlab ci/cd - multi-stage deployment with helm
+  
+     stages:
+       - build 
+       - push
+       - deploy
+
+
+
+     build:
+
+       stage: build
+       script:
+         - docker build -t pathnex-web-app .
+
+
+     push:
+       stage: push
+       script:
+          - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" 
+          - docker push pathnex-web-app
+   
+      deploy:
+         stage: deploy 
+         script:
+           - helm upgrade --install pathnex-nginx pathnex/nginx-ingress
+
+   ## docker 
+   
+  FROM ubuntu
+  ENTRYPOINT [ "echo"]
+  CMD ["HELLO Pathnex"]
