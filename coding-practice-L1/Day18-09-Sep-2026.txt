@@ -1,0 +1,172 @@
+    ##  day 18  - facts  variables ,  affinity  , log  archiving
+
+
+
+
+     ## ansible  use  ansible  facts
+     
+     ---
+     - name: Show system facts for  Pathnex
+       hosts: all 
+  
+       tasks:
+         - name: Print OS info 
+           debug: 
+               var:  ansible_facts['os_family']
+    
+         - name: Print  IP address
+           debug:
+                var: ansible_facts['default_ip4'] ['address']
+    
+        
+    ##  terraform - variable , outputs , tfvars
+   
+       # variables.tf
+        variable "instance_type" {
+            default = "c6a.12xlarge"
+      }
+     
+      
+ # main.tf
+  
+
+
+    resource "aws_instance" "PathnexServer" {
+      ami        =  "ami-0abccd1234abcd1234"
+      instance_type = var.instance_type
+
+
+  # output 
+    output "pathnex_ip" {
+       value = aws_instance.PathnexServer.public_ip
+  }
+   
+
+
+
+  ## kubernetes - node affinity
+      
+    apiVersion: v1
+    kind: pod
+    metadata:
+        name: pathnex-affinity
+    
+    spec: 
+       affinity:
+         nodeAffinity:
+             requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                 - matchExpressions:
+                      - key: disktype
+                        operation: In
+                        values:
+                          - ssd
+       
+    
+    containers:
+          - name: web 
+            image: nginx
+    
+
+
+   
+   ## shell script - archive log files
+    
+    #!/bin/bash
+     
+
+
+     tar -czf  /backup/pathnex-logs-$(date +%F).tar.gz /var/log/
+     echo "Logs archived."
+    
+
+
+
+
+     ## rollback  simulation 
+    
+
+  ##  jenkins pipeline - rollback on failure
+        
+
+
+    pipeline {
+         any agent  
+         enviroment {
+             INSTITUTE_NAME = "Pathnex"
+        }
+         stages {
+               stage('Deploy') {
+                     steps {
+                         script {
+                            try {
+                                sh 'echo "Deploying $INSTIUTE_NAME application..."'
+                                sh 'exit 1' //  simulate failure 
+              }       cath (Expection e) {
+                        echo "Deployment failure. Rolling back $INSTITUTE_NAME application..."
+                                      }
+                                    }
+                                  }
+                          }
+                   }
+              }
+         ##  gitlab ci  rollback  simulation 
+
+
+
+
+            stages: 
+              - deploy 
+          
+
+           variables:
+             INSTITUTE_NAME: "Pathnex"
+        
+           deploy:
+               stage: deploy
+               image: alpine:latest
+               script:
+                 - echo "Deploying $INSTITUTE_NAME application..."
+                 - exit 1 
+               after_script:
+                 - echo "Deployment failed. Rolling back $INSTITUTE_NAME application..."
+
+                      
+         
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
