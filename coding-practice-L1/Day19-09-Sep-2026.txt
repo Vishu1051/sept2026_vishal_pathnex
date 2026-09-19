@@ -1,0 +1,221 @@
+     ##   day 19 - git  deploy  , rds skeleton , rolling strategy , ping check
+   
+     ## ansible - deploy  app using git  
+
+
+
+
+
+    ---
+    - name: Deploy app from git  for Pathnex
+      hosts: all 
+      become: yes
+      
+      tasks:
+        - name: Install git 
+          yum:
+            name: git 
+            state: present
+          
+
+
+
+        - name: clone repository
+          git:
+             repo: "https://github.com/pathnex/app.git"
+             dest: "/opt/pathnex-app"
+  
+
+
+      ## terraform -rds skeleton (mysql)
+  
+
+       resource "aws_db_instnce" "PathnexRDS" {
+         allocation_storage  = 20
+          engine             = "mysql"
+          instance_class     = "db.t3.micro"
+          username           = "admin"
+          password           = "Pathnex123"
+          skip_final_snapshot = true
+    }
+     
+
+
+   ## kubernetes - deployment rolling update 
+     
+
+   apiVersion: apps/v1 
+   kind:  Deployment
+   metadata: 
+      name: pathnex-rollout 
+    spec: 
+       replicas: 3
+       strategy:
+           type: RollingUpdate
+           rollingUpdate:
+              maxSurge: 2
+              maxUnavailable: 1
+           
+
+         selector:
+            matchlevels:
+               app: rollout
+         template:
+             metadata:
+               labels:
+                 app: rollout
+           spec:
+              containers:
+               - name: app
+                 image: nginx
+  
+
+
+    ## shell - script - check internet conectivity
+    
+    #!/bin/bash
+  
+    ping -c 2 google.com &> /dev/null
+ 
+
+    if [ $? -eq  0]; then  
+     echo  "Internet is available"
+   else
+       echo "No internet connection"
+    fi 
+
+
+
+
+      ### approvals
+   ## jenkins pipeline - mannual approval 
+    
+
+     pipeline {
+         agent any 
+         enviroment {
+            INSTITUTE_NAME = "Pathnex"
+         }
+         stages {
+            stage('Deploy') {
+                 steps {
+                     input message: "Approve deployment for $INSTITUTE_NAME?"
+                      sh 'echo "Deployment approved and executed!"'
+                     }
+                 }
+             }
+           }
+
+
+## git lab ci manual  approval job
+ 
+
+       stages:
+          - deploy 
+        
+     
+      variables:
+         INSTITUTE_NAME: "Pathnex"
+      
+      deploy: 
+         stages: deploy 
+         image:   alpine:latest
+         script:
+           - echo "Ready to deploy $INSTITUTE_NAME"
+
+         when: manual
+
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
