@@ -1,0 +1,171 @@
+  ## day 20 - debug day 
+  
+
+       fix  these interntionally broken files:
+    
+   
+   ## ansible - broken
+   
+   - name: Install stuff
+     hosts: all
+     tasks:  
+       - name: install
+         yum: 
+           name: httpd
+           state: present
+
+
+   ## terraform - broken
+
+
+
+   resource "aws_instance" "Bad" {
+     ami   =  "ami-123"
+     instance_type = "c6i.8xlarge"
+      }
+
+
+
+
+     ## kubernetes - broken
+   
+
+      apiVersion: apps/v1
+      kind:  Deployment
+      metadata:
+           name: broken-app
+      spec:
+        replicas: 3
+        selector:
+            matchlables:
+              app: broken
+         template:
+           metadata:
+             lables:
+                app: broken
+         spec:
+           containers:
+            - name: app
+              image: nginx
+
+
+
+    ## secrets  & credentials
+   
+   ## jenkins pipeline -using credentials
+     
+
+
+     pipeline {
+       agent any 
+       enviroment {
+             INSTITUTE_NAME = "Pathnex"
+       }
+        stages {
+           stage('Checkout') {
+                steps {
+                     git url: 'https://github.com/Pathnex/sample-java-app.git'
+                   }
+       }
+       stages('Use Secret') {
+           steps {
+                  withCredentials([string(credentialsID: 'PATHNEX_API_KEY', variable: 'API_KEY')]) {
+
+                  sh 'echo "Using secret $API_KEY for $INSTITUTE_NAME"'
+                   }
+                 }
+               } 
+           }
+   }
+    
+
+
+
+
+   ## gitlab ci  using ci/cd variables
+   
+
+  stages: 
+     - build
+     
+
+
+   variables: 
+     INSTITUTE_NAME: "Pathnex"
+     API_KEY: "PLACEHOLDER_SECRET"
+   
+
+   build:
+     stage: build
+     image: alpine:latest
+      script:
+        - echo "Using secret $API_KEY for $INSTITUTE_NAME"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
