@@ -1,0 +1,214 @@
+## day 22  - handlers, security group , daemonset, disk monitor
+
+
+  
+
+ ## ansible - use  handler on configure  change
+ 
+  ---
+  - name: Configure Nginx for Pathnex
+    hosts: all 
+    become: yes
+   
+   
+    tasks:
+      - name:  Copy nginx config
+        copy:
+          dest: /etc/nginx/nginx.conf
+          content: |
+                user nginx;
+                worker_processes auto;
+          notify: restart nginx
+     
+
+
+
+     handlers:
+         - name: restart  nginx
+           service: 
+               name: nginx
+               state: restarted
+      
+   
+   ## terraform - security  group 
+    
+     
+    resource "aws_security_group" "Pathnex"
+        {
+        name   = "Pathnex-sg"
+        vpc_id = aws_vpc.PathnexVPC.id
+  
+
+       ingress {
+          from_port = 80 
+           to_port  = 80
+           protocol = "tcp"
+           cidr_blocks = ["0.0.0.0/0"]
+       }
+           tags = {
+            Name = "Pathnex-SG"
+            }
+       }
+   
+
+
+## KUBERNETES   -   DAEMONSET
+   
+   apiVersion: apps/v1
+   kind: Daemonset
+   metadata: 
+      name: pathnex-daemon
+   spec:
+      selector:
+         matchLables:
+             app: ds
+      template:
+        metadata:
+         lables:
+            app: ds
+        
+       spec:
+         containers:
+           - name: monitor
+             image: busybox
+             command: ["sh", "-c" , "While true; do echo Pathnex Node Monitor; sleep 20; done"]
+
+
+
+
+
+## shell   script  - monitor disk  usage
+    
+    #!/bin/bash
+    USAGE=$(df -h / | tail -1 |awk '{print $5}')
+    
+    echo "Disk Usage: $USAGE"
+   
+
+
+
+   ## ADVANCE TRIGGERS
+    
+   ## JENKINS PIPELINE - TRIGGER ON GIT TAG
+   
+   pipeline { 
+      agent any
+      enviroment {
+           INSTITUTE_NAME = "Pathnex"
+           TEAM = "Devops"
+           ENV = "prod"
+    
+
+}
+       triggers {
+           pollSCM('H/15 * * * *')
+        }
+      
+        stages {
+             stage ('checkout') {
+                  steps {
+                      git url:  'https://github.com/Pathnex/sample-java-app.git', branch 'main'
+                 }
+
+             }
+              stage ('Build') {
+                   when {
+                         buildingTag()
+                      }
+                      steps {
+                          sh 'echo "Building $INSTITUTE_NAME app for $TEAM   team  in $ENV  enviroment"'
+                         }
+                   }
+                 }
+          }
+
+       ##   gitlab ci  - trigger on tag
+    
+      stages:
+        - build
+     
+
+      variables:
+         INSTITUTE_NAME: "Pathnex"
+         TEAM:  "Devops"
+         Env: "prod"
+          
+
+       build: 
+         stage: build
+         image: maven:3.8.1-jdk-17
+         script:
+             - echo "Building $INSTITUTE_NAME app for $TEAM team in $ENV enviroment"
+         only: 
+           - tags
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
